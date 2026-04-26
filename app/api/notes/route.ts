@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
         const rawTag = request.nextUrl.searchParams.get("tag") ?? "";
         const tag = rawTag === "All" ? "" : rawTag;
 
+        const cookieHeader = await getCookieHeader();
+
         const res = await api.get("/notes", {
             params: {
                 ...(search && { search }),
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
                 ...(tag && { tag }),
             },
             headers: {
-                Cookie: await getCookieHeader(),
+                Cookie: cookieHeader,
             },
         });
 
@@ -60,9 +62,11 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
+        const cookieHeader = await getCookieHeader();
+
         const res = await api.post("/notes", body, {
             headers: {
-                Cookie: await getCookieHeader(),
+                Cookie: cookieHeader,
                 "Content-Type": "application/json",
             },
         });

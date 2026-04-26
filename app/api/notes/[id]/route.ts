@@ -1,29 +1,35 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import { api } from "@/lib/api/api";
-import { cookies } from 'next/headers';
-import { logErrorResponse } from '../../_utils/utils';
-import { isAxiosError } from 'axios';
+import { cookies } from "next/headers";
+import { isAxiosError } from "axios";
+import { logErrorResponse } from "../../_utils/utils";
 
-type Props = {
-    params: { id: string };
-};
+export const dynamic = "force-dynamic";
 
 const getCookieHeader = async () => {
     const cookieStore = await cookies();
 
     return cookieStore
         .getAll()
-        .map((c) => `${c.name}=${c.value}`)
-        .join('; ');
+        .map((c: { name: string; value: string }) =>
+            `${c.name}=${c.value}`
+        )
+        .join("; ");
 };
 
-export async function GET(request: Request, { params }: Props) {
+// 🔥 IMPORTANT: Next 15 requires async params
+export async function GET(
+    request: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
-        const { id } = params;
+        const { id } = await context.params;
+
+        const cookieHeader = await getCookieHeader();
 
         const res = await api.get(`/notes/${id}`, {
             headers: {
-                Cookie: await getCookieHeader(),
+                Cookie: cookieHeader,
             },
         });
 
@@ -41,19 +47,24 @@ export async function GET(request: Request, { params }: Props) {
         logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            { error: "Internal Server Error" },
             { status: 500 }
         );
     }
 }
 
-export async function DELETE(request: Request, { params }: Props) {
+export async function DELETE(
+    request: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
-        const { id } = params;
+        const { id } = await context.params;
+
+        const cookieHeader = await getCookieHeader();
 
         const res = await api.delete(`/notes/${id}`, {
             headers: {
-                Cookie: await getCookieHeader(),
+                Cookie: cookieHeader,
             },
         });
 
@@ -71,20 +82,25 @@ export async function DELETE(request: Request, { params }: Props) {
         logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            { error: "Internal Server Error" },
             { status: 500 }
         );
     }
 }
 
-export async function PATCH(request: Request, { params }: Props) {
+export async function PATCH(
+    request: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
     try {
-        const { id } = params;
+        const { id } = await context.params;
         const body = await request.json();
+
+        const cookieHeader = await getCookieHeader();
 
         const res = await api.patch(`/notes/${id}`, body, {
             headers: {
-                Cookie: await getCookieHeader(),
+                Cookie: cookieHeader,
             },
         });
 
@@ -102,7 +118,7 @@ export async function PATCH(request: Request, { params }: Props) {
         logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            { error: "Internal Server Error" },
             { status: 500 }
         );
     }
