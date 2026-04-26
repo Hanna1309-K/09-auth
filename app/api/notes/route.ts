@@ -28,13 +28,19 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         if (isAxiosError(error)) {
             logErrorResponse(error.response?.data);
+
             return NextResponse.json(
                 { error: error.message, response: error.response?.data },
                 { status: error.status }
             );
         }
+
         logErrorResponse({ message: (error as Error).message });
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+
+        return NextResponse.json(
+            { error: 'Internal Server Error' },
+            { status: 500 }
+        );
     }
 }
 
@@ -43,9 +49,7 @@ export async function POST(request: NextRequest) {
         const cookieStore = await cookies();
         const body = await request.json();
 
-        const res = await api('/notes', {
-            method: 'POST',
-            data: body,
+        const res = await api.post('/notes', body, {
             headers: {
                 Cookie: cookieStore.toString(),
                 'Content-Type': 'application/json',
@@ -56,12 +60,18 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         if (isAxiosError(error)) {
             logErrorResponse(error.response?.data);
+
             return NextResponse.json(
                 { error: error.message, response: error.response?.data },
                 { status: error.status }
             );
         }
+
         logErrorResponse({ message: (error as Error).message });
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+
+        return NextResponse.json(
+            { error: 'Internal Server Error' },
+            { status: 500 }
+        );
     }
 }

@@ -34,7 +34,7 @@ export async function POST() {
                     response: error.response?.data,
                 },
                 {
-                    status: error.response?.status, // <-- ОЦЕ ВАЖЛИВО (як в ТЗ)
+                    status: error.status,
                 }
             );
         }

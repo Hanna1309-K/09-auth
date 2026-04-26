@@ -21,28 +21,18 @@ export async function proxy(req: NextRequest) {
         try {
             const sessionResponse = await checkSession();
 
-            const headers = (sessionResponse as unknown as Response).headers;
-            const setCookie = headers.get("set-cookie");
+            const headers = sessionResponse as unknown as Response;
+            const setCookie = headers.headers.get("set-cookie");
 
-            const response = NextResponse.next();
+            const newAccessToken = (sessionResponse as unknown as { accessToken?: string })?.accessToken;
+
+            token = newAccessToken || refreshToken;
 
             if (setCookie) {
+                const response = NextResponse.next();
                 response.headers.set("set-cookie", setCookie);
-
-                const newAccessToken = (sessionResponse as unknown as {
-                    accessToken?: string;
-                })?.accessToken;
-
-                token = newAccessToken || accessToken;
-
-                return response; // <-- КРИТИЧНО: одразу повертаємо
+                return response;
             }
-
-            const newAccessToken = (sessionResponse as unknown as {
-                accessToken?: string;
-            })?.accessToken;
-
-            token = newAccessToken || accessToken;
         } catch {
             token = undefined;
         }
