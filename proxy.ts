@@ -16,22 +16,12 @@ export async function proxy(req: NextRequest) {
         pathname.startsWith("/notes");
 
     let token = accessToken;
-    let response = NextResponse.next();
 
     if (!accessToken && refreshToken) {
         try {
-            const sessionResponse = await checkSession();
+            const session = await checkSession();
 
-            // якщо є set-cookie — беремо його через типізацію Response
-            const headers = (sessionResponse as unknown as Response).headers;
-            const setCookie = headers.get("set-cookie");
-
-            if (setCookie) {
-                response = NextResponse.next();
-                response.headers.set("set-cookie", setCookie);
-            }
-
-            if (sessionResponse) {
+            if (session) {
                 token = refreshToken;
             }
         } catch {
@@ -47,5 +37,5 @@ export async function proxy(req: NextRequest) {
         return NextResponse.redirect(new URL("/", req.url));
     }
 
-    return response;
+    return NextResponse.next();
 }

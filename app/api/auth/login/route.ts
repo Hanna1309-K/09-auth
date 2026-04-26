@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { api } from "@/lib/api/api";
-import { cookies } from "next/headers";
 import { isAxiosError } from "axios";
 import { logErrorResponse } from "../../_utils/utils";
 
@@ -10,7 +9,9 @@ export async function POST(req: NextRequest) {
 
         const apiRes = await api.post("/auth/login", body);
 
-        const cookieStore = await cookies();
+        const response = NextResponse.json(apiRes.data, {
+            status: apiRes.status,
+        });
 
         const setCookie = apiRes.headers["set-cookie"];
 
@@ -19,26 +20,28 @@ export async function POST(req: NextRequest) {
                 ? setCookie
                 : [setCookie];
 
-            cookiesArray.forEach((cookieStr) => {
-                const [cookiePair] = cookieStr.split(";");
-                const [name, value] = cookiePair.split("=");
-
-                cookieStore.set(name, value);
+            cookiesArray.forEach((cookie) => {
+                response.headers.append("set-cookie", cookie);
             });
         }
 
-        return NextResponse.json(apiRes.data, {
-            status: apiRes.status,
-        });
+        return response;
     } catch (error) {
         if (isAxiosError(error)) {
             logErrorResponse(error.response?.data);
 
             return NextResponse.json(
-                { error: error.message },
-                { status: error.response?.status || 500 }
+                {
+                    error: error.message,
+                    response: error.response?.data,
+                },
+                {
+                    status: error.response?.status || 500,
+                }
             );
         }
+
+        logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
             { error: "Internal Server Error" },

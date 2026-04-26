@@ -4,37 +4,50 @@ import { api } from "@/lib/api/api";
 import { isAxiosError } from "axios";
 import { logErrorResponse } from "../../_utils/utils";
 
-export const dynamic = "force-dynamic";
-
-export async function GET() {
+export async function POST() {
     try {
         const cookieStore = await cookies();
 
-        const apiRes = await api.get("/auth/session", {
+        const cookieHeader = cookieStore
+            .getAll()
+            .map((c) => `${c.name}=${c.value}`)
+            .join("; ");
+
+        await api.post("/auth/logout", null, {
             headers: {
-                Cookie: cookieStore.toString(),
+                Cookie: cookieHeader,
             },
         });
 
-        return NextResponse.json(
-            { success: true, user: apiRes.data?.user },
+        const response = NextResponse.json(
+            { message: "Logged out successfully" },
             { status: 200 }
         );
+
+        response.cookies.delete("accessToken");
+        response.cookies.delete("refreshToken");
+
+        return response;
     } catch (error) {
         if (isAxiosError(error)) {
             logErrorResponse(error.response?.data);
 
             return NextResponse.json(
-                { success: false },
-                { status: 200 }
+                {
+                    error: error.message,
+                    response: error.response?.data,
+                },
+                {
+                    status: error.response?.status || 500,
+                }
             );
         }
 
         logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
-            { success: false },
-            { status: 200 }
+            { error: "Internal Server Error" },
+            { status: 500 }
         );
     }
 }
