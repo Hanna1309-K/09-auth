@@ -11,7 +11,9 @@ const getCookieHeader = async () => {
 
     return cookieStore
         .getAll()
-        .map((c) => `${c.name}=${c.value}`)
+        .map((c: { name: string; value: string }) =>
+            `${c.name}=${c.value}`
+        )
         .join("; ");
 };
 

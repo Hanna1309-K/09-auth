@@ -3,12 +3,14 @@ import { cookies } from "next/headers";
 import { User } from "@/types/user";
 import { Note } from "@/types/note";
 
-const getCookieHeader = () => {
-    const cookieStore = cookies();
+const getCookieHeader = async () => {
+    const cookieStore = await cookies();
 
     return cookieStore
         .getAll()
-        .map((c) => `${c.name}=${c.value}`)
+        .map((c: { name: string; value: string }) =>
+            `${c.name}=${c.value}`
+        )
         .join("; ");
 };
 
@@ -21,13 +23,15 @@ export const fetchNotes = async (params: {
     search?: string;
     tag?: string;
 }): Promise<Note[]> => {
+    const cookieHeader = await getCookieHeader();
+
     const res = await api.get("/notes", {
         params: {
             ...params,
             perPage: 12,
         },
         headers: {
-            Cookie: getCookieHeader(),
+            Cookie: cookieHeader,
         },
     });
 
@@ -35,9 +39,11 @@ export const fetchNotes = async (params: {
 };
 
 export const fetchNoteById = async (id: string): Promise<Note> => {
+    const cookieHeader = await getCookieHeader();
+
     const res = await api.get(`/notes/${id}`, {
         headers: {
-            Cookie: getCookieHeader(),
+            Cookie: cookieHeader,
         },
     });
 
@@ -49,9 +55,11 @@ export const fetchNoteById = async (id: string): Promise<Note> => {
  */
 
 export const getMe = async (): Promise<User> => {
+    const cookieHeader = await getCookieHeader();
+
     const res = await api.get("/users/me", {
         headers: {
-            Cookie: getCookieHeader(),
+            Cookie: cookieHeader,
         },
     });
 
@@ -59,9 +67,11 @@ export const getMe = async (): Promise<User> => {
 };
 
 export const checkSession = async (): Promise<User | null> => {
+    const cookieHeader = await getCookieHeader();
+
     const res = await api.get("/auth/session", {
         headers: {
-            Cookie: getCookieHeader(),
+            Cookie: cookieHeader,
         },
     });
 
