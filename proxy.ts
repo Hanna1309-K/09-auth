@@ -17,25 +17,25 @@ export async function proxy(req: NextRequest) {
 
     let token = accessToken;
 
-    // 🔥 якщо нема accessToken, але є refreshToken → пробуємо відновити сесію
+    // 🔄 якщо немає accessToken → пробуємо refresh
     if (!accessToken && refreshToken) {
         try {
             const session = await checkSession();
 
             if (session) {
-                token = refreshToken;
+                token = accessToken || refreshToken;
             }
         } catch {
             token = undefined;
         }
     }
 
-    // 🔒 не авторизований → приватні сторінки
+    // 🔒 неавторизований → приватні сторінки
     if (!token && isPrivatePage) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
-    // 🔓 авторизований → сторінки auth
+    // 🔓 авторизований → auth сторінки
     if (token && isAuthPage) {
         return NextResponse.redirect(new URL("/", req.url));
     }

@@ -41,7 +41,7 @@ export default function NotesClient({ tag }: Props) {
         queryFn: () =>
             fetchNotes({
                 search: debouncedSearch,
-                tag: tag && tag !== "all" ? tag : undefined,
+                tag: tag && tag !== "all" ? tag : "",
                 page,
             }),
         placeholderData: keepPreviousData,
@@ -62,15 +62,17 @@ export default function NotesClient({ tag }: Props) {
 
             {data && <NoteList notes={data} />}
 
-            <div className={css.pagination}>
-                <button onClick={handlePrevPage} disabled={page === 1}>
-                    Prev
-                </button>
+            {data && data.length > 0 && (
+                <div className={css.pagination}>
+                    <button onClick={handlePrevPage} disabled={page === 1}>
+                        Prev
+                    </button>
 
-                <span>Page {page}</span>
+                    <span>Page {page}</span>
 
-                <button onClick={handleNextPage}>Next</button>
-            </div>
+                    <button onClick={handleNextPage}>Next</button>
+                </div>
+            )}
         </div>
     );
 }

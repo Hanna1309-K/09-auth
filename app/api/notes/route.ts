@@ -13,11 +13,6 @@ export async function GET(request: NextRequest) {
 
         const cookieStore = await cookies();
 
-        const cookieHeader = cookieStore
-            .getAll()
-            .map((c) => `${c.name}=${c.value}`)
-            .join("; ");
-
         const res = await api.get("/notes", {
             params: {
                 ...(search && { search }),
@@ -26,7 +21,7 @@ export async function GET(request: NextRequest) {
                 ...(tag && { tag }),
             },
             headers: {
-                Cookie: cookieHeader,
+                Cookie: cookieStore.toString(),
             },
         });
 
@@ -56,14 +51,9 @@ export async function POST(request: NextRequest) {
 
         const cookieStore = await cookies();
 
-        const cookieHeader = cookieStore
-            .getAll()
-            .map((c) => `${c.name}=${c.value}`)
-            .join("; ");
-
         const res = await api.post("/notes", body, {
             headers: {
-                Cookie: cookieHeader,
+                Cookie: cookieStore.toString(),
                 "Content-Type": "application/json",
             },
         });

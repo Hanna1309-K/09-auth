@@ -1,48 +1,49 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { api } from "@/lib/api/api";
-import { cookies } from "next/headers";
 import { isAxiosError } from "axios";
 import { logErrorResponse } from "../../_utils/utils";
 
-export const dynamic = "force-dynamic";
-
-export async function GET() {
+export async function POST(req: NextRequest) {
     try {
-        const cookieStore = await cookies();
+        const body = await req.json();
 
-        const cookieHeader = cookieStore
-            .getAll()
-            .map((c) => `${c.name}=${c.value}`)
-            .join("; ");
+        const apiRes = await api.post("/auth/register", body);
 
-        const apiRes = await api.get("/auth/session", {
-            headers: {
-                Cookie: cookieHeader,
-            },
+        const response = NextResponse.json(apiRes.data, {
+            status: apiRes.status,
         });
 
-        return NextResponse.json(
-            {
-                success: true,
-                user: apiRes.data?.user,
-            },
-            { status: 200 }
-        );
+        const setCookie = apiRes.headers["set-cookie"];
+
+        if (setCookie) {
+            const cookiesArray = Array.isArray(setCookie)
+                ? setCookie
+                : [setCookie];
+
+            cookiesArray.forEach((cookie) => {
+                response.headers.append("set-cookie", cookie);
+            });
+        }
+
+        return response;
     } catch (error) {
         if (isAxiosError(error)) {
             logErrorResponse(error.response?.data);
 
             return NextResponse.json(
-                { success: false },
-                { status: 200 }
+                {
+                    error: error.message,
+                    response: error.response?.data,
+                },
+                {
+                    status: error.response?.status || 500,
+                }
             );
         }
 
-        logErrorResponse({ message: (error as Error).message });
-
         return NextResponse.json(
-            { success: false },
-            { status: 200 }
+            { error: "Internal Server Error" },
+            { status: 500 }
         );
     }
 }

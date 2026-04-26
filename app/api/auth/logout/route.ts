@@ -8,14 +8,17 @@ export async function POST() {
     try {
         const cookieStore = await cookies();
 
-        const cookieHeader = cookieStore
-            .getAll()
-            .map((c) => `${c.name}=${c.value}`)
-            .join("; ");
+        const accessToken = cookieStore.get("accessToken")?.value;
+        const refreshToken = cookieStore.get("refreshToken")?.value;
 
         await api.post("/auth/logout", null, {
             headers: {
-                Cookie: cookieHeader,
+                Cookie: [
+                    accessToken && `accessToken=${accessToken}`,
+                    refreshToken && `refreshToken=${refreshToken}`,
+                ]
+                    .filter(Boolean)
+                    .join("; "),
             },
         });
 
@@ -24,8 +27,8 @@ export async function POST() {
             { status: 200 }
         );
 
-        response.cookies.delete("accessToken");
-        response.cookies.delete("refreshToken");
+        cookieStore.delete("accessToken");
+        cookieStore.delete("refreshToken");
 
         return response;
     } catch (error) {

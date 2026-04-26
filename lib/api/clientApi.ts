@@ -36,7 +36,8 @@ export const fetchNotes = async (params?: {
         },
     });
 
-    return res.data;
+    // 👇 важливо: якщо бекенд повертає { data: Note[] }
+    return res.data.data ?? res.data;
 };
 
 export const fetchNoteById = async (id: string): Promise<Note> => {
@@ -60,7 +61,9 @@ export const getMe = async (): Promise<User> => {
     return res.data;
 };
 
-export const updateMe = async (data: { username: string }) => {
+export const updateMe = async (data: {
+    username: string;
+}): Promise<User> => {
     const res = await api.patch("/users/me", data);
     return res.data;
 };

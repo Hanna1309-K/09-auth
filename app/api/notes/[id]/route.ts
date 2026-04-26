@@ -4,23 +4,16 @@ import { cookies } from "next/headers";
 import { isAxiosError } from "axios";
 import { logErrorResponse } from "../../_utils/utils";
 
-export const dynamic = "force-dynamic";
-
-const getCookieHeader = async () => {
-    const cookieStore = await cookies();
-    return cookieStore.toString();
-};
-
 export async function GET(
     request: NextRequest,
-    context: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
     try {
-        const { id } = await context.params;
+        const cookieStore = cookies();
 
-        const cookieHeader = await getCookieHeader();
+        const cookieHeader = cookieStore.toString();
 
-        const res = await api.get(`/notes/${id}`, {
+        const res = await api.get(`/notes/${params.id}`, {
             headers: {
                 Cookie: cookieHeader,
             },
@@ -36,8 +29,6 @@ export async function GET(
                 { status: error.response?.status || 500 }
             );
         }
-
-        logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
             { error: "Internal Server Error" },
@@ -48,14 +39,14 @@ export async function GET(
 
 export async function DELETE(
     request: NextRequest,
-    context: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
     try {
-        const { id } = await context.params;
+        const cookieStore = cookies();
 
-        const cookieHeader = await getCookieHeader();
+        const cookieHeader = cookieStore.toString();
 
-        const res = await api.delete(`/notes/${id}`, {
+        const res = await api.delete(`/notes/${params.id}`, {
             headers: {
                 Cookie: cookieHeader,
             },
@@ -71,8 +62,6 @@ export async function DELETE(
                 { status: error.response?.status || 500 }
             );
         }
-
-        logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
             { error: "Internal Server Error" },
@@ -83,15 +72,16 @@ export async function DELETE(
 
 export async function PATCH(
     request: NextRequest,
-    context: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
     try {
-        const { id } = await context.params;
         const body = await request.json();
 
-        const cookieHeader = await getCookieHeader();
+        const cookieStore = cookies();
 
-        const res = await api.patch(`/notes/${id}`, body, {
+        const cookieHeader = cookieStore.toString();
+
+        const res = await api.patch(`/notes/${params.id}`, body, {
             headers: {
                 Cookie: cookieHeader,
             },
@@ -107,8 +97,6 @@ export async function PATCH(
                 { status: error.response?.status || 500 }
             );
         }
-
-        logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
             { error: "Internal Server Error" },

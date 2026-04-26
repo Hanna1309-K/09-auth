@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
     try {
-        const cookieStore = await cookies();
+        const cookieStore = cookies();
 
         const cookieHeader = cookieStore.toString();
 
@@ -26,8 +26,13 @@ export async function GET() {
             logErrorResponse(error.response?.data);
 
             return NextResponse.json(
-                { error: error.message },
-                { status: error.response?.status || 500 }
+                {
+                    error: error.message,
+                    response: error.response?.data,
+                },
+                {
+                    status: error.response?.status,
+                }
             );
         }
 
