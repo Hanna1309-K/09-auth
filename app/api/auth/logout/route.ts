@@ -8,26 +8,22 @@ export async function POST() {
     try {
         const cookieStore = await cookies();
 
-        const cookieHeader = cookieStore
-            .getAll()
-            .map((c) => `${c.name}=${c.value}`)
-            .join("; ");
+        const accessToken = cookieStore.get("accessToken")?.value;
+        const refreshToken = cookieStore.get("refreshToken")?.value;
 
         await api.post("/auth/logout", null, {
             headers: {
-                Cookie: cookieHeader,
+                Cookie: `accessToken=${accessToken}; refreshToken=${refreshToken}`,
             },
         });
 
-        const response = NextResponse.json(
+        cookieStore.delete("accessToken");
+        cookieStore.delete("refreshToken");
+
+        return NextResponse.json(
             { message: "Logged out successfully" },
             { status: 200 }
         );
-
-        response.cookies.delete("accessToken");
-        response.cookies.delete("refreshToken");
-
-        return response;
     } catch (error) {
         if (isAxiosError(error)) {
             logErrorResponse(error.response?.data);

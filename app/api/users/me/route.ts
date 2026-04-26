@@ -1,9 +1,10 @@
 
-import { api } from "@/lib/api/api";
 export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { api } from '../../api';
 import { cookies } from 'next/headers';
+import { logErrorResponse } from '../../_utils/utils';
 import { isAxiosError } from 'axios';
 
 export async function GET() {
@@ -19,11 +20,15 @@ export async function GET() {
         return NextResponse.json(res.data, { status: res.status });
     } catch (error) {
         if (isAxiosError(error)) {
+            logErrorResponse(error.response?.data);
+
             return NextResponse.json(
                 { error: error.message, response: error.response?.data },
-                { status: error.response?.status }
+                { status: error.status }
             );
         }
+
+        logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
             { error: 'Internal Server Error' },
@@ -32,7 +37,7 @@ export async function GET() {
     }
 }
 
-export async function PATCH(request: NextRequest) {
+export async function PATCH(request: Request) {
     try {
         const cookieStore = await cookies();
         const body = await request.json();
@@ -46,11 +51,15 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json(res.data, { status: res.status });
     } catch (error) {
         if (isAxiosError(error)) {
+            logErrorResponse(error.response?.data);
+
             return NextResponse.json(
                 { error: error.message, response: error.response?.data },
-                { status: error.response?.status }
+                { status: error.status }
             );
         }
+
+        logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
             { error: 'Internal Server Error' },

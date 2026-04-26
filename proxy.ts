@@ -17,22 +17,38 @@ export async function proxy(req: NextRequest) {
 
     let token = accessToken;
 
+    // якщо немає accessToken, але є refreshToken → пробуємо оновити сесію
     if (!accessToken && refreshToken) {
         try {
-            const session = await checkSession();
+            const sessionResponse = await checkSession();
 
-            if (session) {
-                token = refreshToken;
+            const headers = (sessionResponse as unknown as Response).headers;
+            const setCookie = headers.get("set-cookie");
+
+            const response = NextResponse.next();
+
+            // якщо бек повернув нові cookies → прокидуємо їх далі
+            if (setCookie) {
+                response.headers.set("set-cookie", setCookie);
             }
+
+            // дістаємо новий accessToken (якщо є)
+            const newAccessToken = (sessionResponse as unknown as {
+                accessToken?: string;
+            })?.accessToken;
+
+            token = newAccessToken || accessToken;
         } catch {
             token = undefined;
         }
     }
 
+    // якщо немає токена → не пускаємо в приватні сторінки
     if (!token && isPrivatePage) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
+    // якщо вже авторизований → не пускаємо на auth сторінки
     if (token && isAuthPage) {
         return NextResponse.redirect(new URL("/", req.url));
     }
