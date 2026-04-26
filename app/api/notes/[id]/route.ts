@@ -4,16 +4,27 @@ import { cookies } from "next/headers";
 import { isAxiosError } from "axios";
 import { logErrorResponse } from "../../_utils/utils";
 
+export const dynamic = "force-dynamic";
+
+const getCookieHeader = async () => {
+    const cookieStore = await cookies();
+
+    return cookieStore
+        .getAll()
+        .map((c) => `${c.name}=${c.value}`)
+        .join("; ");
+};
+
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
-        const cookieStore = cookies();
+        const { id } = await context.params;
 
-        const cookieHeader = cookieStore.toString();
+        const cookieHeader = await getCookieHeader();
 
-        const res = await api.get(`/notes/${params.id}`, {
+        const res = await api.get(`/notes/${id}`, {
             headers: {
                 Cookie: cookieHeader,
             },
@@ -39,14 +50,14 @@ export async function GET(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
-        const cookieStore = cookies();
+        const { id } = await context.params;
 
-        const cookieHeader = cookieStore.toString();
+        const cookieHeader = await getCookieHeader();
 
-        const res = await api.delete(`/notes/${params.id}`, {
+        const res = await api.delete(`/notes/${id}`, {
             headers: {
                 Cookie: cookieHeader,
             },
@@ -55,10 +66,8 @@ export async function DELETE(
         return NextResponse.json(res.data, { status: res.status });
     } catch (error) {
         if (isAxiosError(error)) {
-            logErrorResponse(error.response?.data);
-
             return NextResponse.json(
-                { error: error.message, response: error.response?.data },
+                { error: error.message },
                 { status: error.response?.status || 500 }
             );
         }
@@ -72,16 +81,15 @@ export async function DELETE(
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await context.params;
         const body = await request.json();
 
-        const cookieStore = cookies();
+        const cookieHeader = await getCookieHeader();
 
-        const cookieHeader = cookieStore.toString();
-
-        const res = await api.patch(`/notes/${params.id}`, body, {
+        const res = await api.patch(`/notes/${id}`, body, {
             headers: {
                 Cookie: cookieHeader,
             },
@@ -90,10 +98,8 @@ export async function PATCH(
         return NextResponse.json(res.data, { status: res.status });
     } catch (error) {
         if (isAxiosError(error)) {
-            logErrorResponse(error.response?.data);
-
             return NextResponse.json(
-                { error: error.message, response: error.response?.data },
+                { error: error.message },
                 { status: error.response?.status || 500 }
             );
         }
