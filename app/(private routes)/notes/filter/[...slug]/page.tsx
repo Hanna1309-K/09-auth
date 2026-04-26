@@ -1,16 +1,19 @@
 import { fetchNotes } from "@/lib/api/serverApi";
 import { Note } from "@/types/note";
 
-export default async function Page({
-    params,
-    searchParams,
-}: {
-    params: { tag: string };
+type Props = {
+    params: Promise<{ slug: string[] }>;
     searchParams: { page?: string; search?: string };
-}) {
+};
+
+export default async function Page({ params, searchParams }: Props) {
+    const { slug } = await params;
+
+    const tag = slug?.[0] === "all" ? undefined : slug?.[0];
+
     const notes: Note[] = await fetchNotes({
         search: searchParams.search ?? "",
-        tag: params.tag === "all" ? undefined : params.tag,
+        tag,
     });
 
     return (

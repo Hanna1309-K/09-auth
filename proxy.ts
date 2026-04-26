@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkSession } from "@/lib/api/serverApi";
 
-export function proxy(req: NextRequest) {
-    const token =
-        req.cookies.get("token")?.value ||
-        req.cookies.get("access_token")?.value ||
-        req.cookies.get("accessToken")?.value ||
-        req.cookies.get("refreshToken")?.value;
+export async function proxy(req: NextRequest) {
+    const accessToken = req.cookies.get("accessToken")?.value;
+    const refreshToken = req.cookies.get("refreshToken")?.value;
 
     const { pathname } = req.nextUrl;
 
@@ -17,14 +15,29 @@ export function proxy(req: NextRequest) {
         pathname.startsWith("/profile") ||
         pathname.startsWith("/notes");
 
-    // 🔒 якщо НЕ авторизований і йде в приватні сторінки
+    let token = accessToken;
+
+    // 🔥 якщо нема accessToken, але є refreshToken → пробуємо відновити сесію
+    if (!accessToken && refreshToken) {
+        try {
+            const session = await checkSession();
+
+            if (session) {
+                token = refreshToken;
+            }
+        } catch {
+            token = undefined;
+        }
+    }
+
+    // 🔒 не авторизований → приватні сторінки
     if (!token && isPrivatePage) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
-    // 🔓 якщо авторизований і йде на auth сторінки
+    // 🔓 авторизований → сторінки auth
     if (token && isAuthPage) {
-        return NextResponse.redirect(new URL("/profile", req.url));
+        return NextResponse.redirect(new URL("/", req.url));
     }
 
     return NextResponse.next();

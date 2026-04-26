@@ -8,17 +8,14 @@ export async function POST() {
     try {
         const cookieStore = await cookies();
 
-        const accessToken = cookieStore.get("accessToken")?.value;
-        const refreshToken = cookieStore.get("refreshToken")?.value;
+        const cookieHeader = cookieStore
+            .getAll()
+            .map((c) => `${c.name}=${c.value}`)
+            .join("; ");
 
         await api.post("/auth/logout", null, {
             headers: {
-                Cookie: [
-                    accessToken && `accessToken=${accessToken}`,
-                    refreshToken && `refreshToken=${refreshToken}`,
-                ]
-                    .filter(Boolean)
-                    .join("; "),
+                Cookie: cookieHeader,
             },
         });
 

@@ -27,8 +27,15 @@ export const logout = async (): Promise<void> => {
 export const fetchNotes = async (params?: {
     search?: string;
     tag?: string;
+    page?: number;
 }): Promise<Note[]> => {
-    const res = await api.get("/notes", { params });
+    const res = await api.get("/notes", {
+        params: {
+            ...params,
+            perPage: 12,
+        },
+    });
+
     return res.data;
 };
 
@@ -42,8 +49,9 @@ export const createNote = async (data: CreateNoteDto): Promise<Note> => {
     return res.data;
 };
 
-export const deleteNote = async (id: string): Promise<void> => {
-    await api.delete(`/notes/${id}`);
+export const deleteNote = async (id: string): Promise<Note> => {
+    const res = await api.delete(`/notes/${id}`);
+    return res.data;
 };
 
 // USER

@@ -4,19 +4,6 @@ import { cookies } from "next/headers";
 import { isAxiosError } from "axios";
 import { logErrorResponse } from "../_utils/utils";
 
-export const dynamic = "force-dynamic";
-
-const getCookieHeader = async () => {
-    const cookieStore = await cookies();
-
-    return cookieStore
-        .getAll()
-        .map((c: { name: string; value: string }) =>
-            `${c.name}=${c.value}`
-        )
-        .join("; ");
-};
-
 export async function GET(request: NextRequest) {
     try {
         const search = request.nextUrl.searchParams.get("search") ?? "";
@@ -24,7 +11,12 @@ export async function GET(request: NextRequest) {
         const rawTag = request.nextUrl.searchParams.get("tag") ?? "";
         const tag = rawTag === "All" ? "" : rawTag;
 
-        const cookieHeader = await getCookieHeader();
+        const cookieStore = await cookies();
+
+        const cookieHeader = cookieStore
+            .getAll()
+            .map((c) => `${c.name}=${c.value}`)
+            .join("; ");
 
         const res = await api.get("/notes", {
             params: {
@@ -62,7 +54,12 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
 
-        const cookieHeader = await getCookieHeader();
+        const cookieStore = await cookies();
+
+        const cookieHeader = cookieStore
+            .getAll()
+            .map((c) => `${c.name}=${c.value}`)
+            .join("; ");
 
         const res = await api.post("/notes", body, {
             headers: {

@@ -66,7 +66,7 @@ export const getMe = async (): Promise<User> => {
     return res.data;
 };
 
-export const checkSession = async (): Promise<User | null> => {
+export const checkSession = async () => {
     const cookieHeader = await getCookieHeader();
 
     const res = await api.get("/auth/session", {
@@ -75,5 +75,5 @@ export const checkSession = async (): Promise<User | null> => {
         },
     });
 
-    return res.data?.user ?? null;
+    return res;
 };

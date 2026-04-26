@@ -1,17 +1,17 @@
-'use client';
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import css from './ProfilePage.module.css';
-import { useAuthStore } from '@/lib/store/authStore';
+import css from "./ProfilePage.module.css";
+import { getMe } from "@/lib/api/serverApi";
 
-export default function ProfilePage() {
-    const user = useAuthStore((s) => s.user);
-    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+export const metadata: Metadata = {
+    title: "Profile | NoteHub",
+    description: "User profile page",
+};
 
-    if (!isAuthenticated) {
-        return <p>Loading...</p>;
-    }
+export default async function ProfilePage() {
+    const user = await getMe();
 
     if (!user) {
         return <p>No user data</p>;

@@ -1,21 +1,18 @@
-export const dynamic = "force-dynamic";
-
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { api } from "@/lib/api/api";
-import { logErrorResponse } from "../../_utils/utils";
 import { isAxiosError } from "axios";
+import { logErrorResponse } from "../../_utils/utils";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
     try {
         const cookieStore = await cookies();
 
-        const cookieHeader = cookieStore
-            .getAll()
-            .map((c) => `${c.name}=${c.value}`)
-            .join("; ");
+        const cookieHeader = cookieStore.toString();
 
-        const res = await api.get("/auth/session", {
+        const res = await api.get("/users/me", {
             headers: {
                 Cookie: cookieHeader,
             },

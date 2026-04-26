@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 
 import { fetchNotes } from "@/lib/api/clientApi";
 import css from "./NotesPage.module.css";
@@ -15,14 +15,15 @@ type Props = {
 };
 
 export default function NotesClient({ tag }: Props) {
-    const router = useRouter();
-
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    const [page, setPage] = useState(1);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(search);
+            setPage(1);
         }, 500);
 
         return () => clearTimeout(timer);
@@ -32,12 +33,16 @@ export default function NotesClient({ tag }: Props) {
         setSearch(value);
     };
 
+    const handleNextPage = () => setPage((p) => p + 1);
+    const handlePrevPage = () => setPage((p) => Math.max(1, p - 1));
+
     const { data, isLoading, error } = useQuery({
-        queryKey: ["notes", debouncedSearch, tag],
+        queryKey: ["notes", debouncedSearch, tag, page],
         queryFn: () =>
             fetchNotes({
                 search: debouncedSearch,
                 tag: tag && tag !== "all" ? tag : undefined,
+                page,
             }),
         placeholderData: keepPreviousData,
     });
@@ -47,19 +52,25 @@ export default function NotesClient({ tag }: Props) {
             <div className={css.toolbar}>
                 <SearchBox value={search} onChange={handleSearch} />
 
-                <button
-                    type="button"
-                    className={css.button}
-                    onClick={() => router.push("/notes/action/create")}
-                >
+                <Link href="/notes/action/create" className={css.button}>
                     Create note
-                </button>
+                </Link>
             </div>
 
             {isLoading && <p>Loading...</p>}
             {error && <p>Error loading notes</p>}
 
             {data && <NoteList notes={data} />}
+
+            <div className={css.pagination}>
+                <button onClick={handlePrevPage} disabled={page === 1}>
+                    Prev
+                </button>
+
+                <span>Page {page}</span>
+
+                <button onClick={handleNextPage}>Next</button>
+            </div>
         </div>
     );
 }

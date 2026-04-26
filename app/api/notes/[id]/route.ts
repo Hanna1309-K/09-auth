@@ -8,16 +8,9 @@ export const dynamic = "force-dynamic";
 
 const getCookieHeader = async () => {
     const cookieStore = await cookies();
-
-    return cookieStore
-        .getAll()
-        .map((c: { name: string; value: string }) =>
-            `${c.name}=${c.value}`
-        )
-        .join("; ");
+    return cookieStore.toString();
 };
 
-// 🔥 IMPORTANT: Next 15 requires async params
 export async function GET(
     request: NextRequest,
     context: { params: Promise<{ id: string }> }
