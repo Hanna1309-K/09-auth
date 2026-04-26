@@ -1,32 +1,33 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import css from './SignInPage.module.css';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import css from "./SignInPage.module.css";
 
-import { login } from '@/lib/api/clientApi';
-import { useAuthStore } from '@/lib/store/authStore';
+import { login } from "@/lib/api/clientApi";
+import { useAuthStore } from "@/lib/store/authStore";
+import { User } from "@/types/user";
 
 export default function SignInPage() {
     const router = useRouter();
     const setUser = useAuthStore((s) => s.setUser);
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
 
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         try {
-            const user = await login({ email, password });
+            const user: User = await login({ email, password });
 
             setUser(user);
-            router.push('/profile');
+            router.push("/profile");
 
-            console.log('LOGIN RESPONSE:', user); // 👈 ОЦЕ В КІНЦІ
+            console.log("LOGIN RESPONSE:", user);
         } catch {
-            setError('Invalid credentials');
+            setError("Invalid credentials");
         }
     };
 

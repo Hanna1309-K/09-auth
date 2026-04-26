@@ -3,3 +3,7 @@ export interface User {
     username: string;
     avatar: string;
 }
+export type LoginData = {
+    email: string;
+    password: string;
+};

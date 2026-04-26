@@ -10,7 +10,7 @@ export default function AuthProvider({
     children: React.ReactNode;
 }) {
     const setUser = useAuthStore((s) => s.setUser);
-    const logout = useAuthStore((s) => s.logout);
+    const clearIsAuthenticated = useAuthStore((s) => s.clearIsAuthenticated);
 
     const [loading, setLoading] = useState(true);
 
@@ -20,14 +20,14 @@ export default function AuthProvider({
                 const user = await getMe();
                 setUser(user);
             } catch {
-                logout();
+                clearIsAuthenticated();
             } finally {
                 setLoading(false);
             }
         };
 
         initAuth();
-    }, [setUser, logout]);
+    }, [setUser, clearIsAuthenticated]);
 
     if (loading) {
         return <p>Loading...</p>;

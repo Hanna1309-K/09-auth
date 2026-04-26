@@ -1,41 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { api } from '../../api';
-import { isAxiosError } from 'axios';
-import { logErrorResponse } from '../../_utils/utils';
+import { NextRequest, NextResponse } from "next/server";
+import { api } from "@/lib/api/api";
+import { isAxiosError } from "axios";
+import { logErrorResponse } from "../../_utils/utils";
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
 
-        const apiRes = await api.post('/auth/register', body);
+        const apiRes = await api.post("/auth/register", body);
 
         const response = NextResponse.json(apiRes.data, {
             status: apiRes.status,
         });
 
-        const setCookie = apiRes.headers['set-cookie'];
+        const setCookie = apiRes.headers["set-cookie"];
 
         if (setCookie) {
             const cookieArray = Array.isArray(setCookie)
                 ? setCookie
                 : [setCookie];
 
-            cookieArray.forEach((cookieStr) => {
-                const [cookiePair] = cookieStr.split(';');
-                const [name, value] = cookiePair.split('=');
-
-                if (name && value) {
-                    response.cookies.set(name.trim(), value, {
-                        path: '/',
-                        httpOnly: true,
-                        secure: true,
-                        sameSite: 'lax',
-                    });
-                }
+            cookieArray.forEach((cookie) => {
+                response.headers.append("set-cookie", cookie);
             });
         }
 
-        return response; // ✔ завжди success
+        return response;
     } catch (error) {
         if (isAxiosError(error)) {
             logErrorResponse(error.response?.data);
@@ -52,7 +42,7 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            { error: "Internal Server Error" },
             { status: 500 }
         );
     }

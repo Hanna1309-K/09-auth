@@ -1,34 +1,36 @@
-import { NextResponse } from 'next/server';
-import { api } from '../../api';
-import { cookies } from 'next/headers';
-import { isAxiosError } from 'axios';
-import { logErrorResponse } from '../../_utils/utils';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { api } from "@/lib/api/api";
+import { isAxiosError } from "axios";
+import { logErrorResponse } from "../../_utils/utils";
 
 export async function POST() {
     try {
         const cookieStore = await cookies();
 
-        const accessToken = cookieStore.get('accessToken')?.value;
-        const refreshToken = cookieStore.get('refreshToken')?.value;
+        const accessToken = cookieStore.get("accessToken")?.value;
+        const refreshToken = cookieStore.get("refreshToken")?.value;
 
-        await api.post('/auth/logout', null, {
+        await api.post("/auth/logout", null, {
             headers: {
                 Cookie: [
                     accessToken && `accessToken=${accessToken}`,
                     refreshToken && `refreshToken=${refreshToken}`,
                 ]
                     .filter(Boolean)
-                    .join('; '),
+                    .join("; "),
             },
         });
 
-        cookieStore.delete('accessToken');
-        cookieStore.delete('refreshToken');
-
-        return NextResponse.json(
-            { message: 'Logged out successfully' },
+        const response = NextResponse.json(
+            { message: "Logged out successfully" },
             { status: 200 }
         );
+
+        response.cookies.delete("accessToken");
+        response.cookies.delete("refreshToken");
+
+        return response;
     } catch (error) {
         if (isAxiosError(error)) {
             logErrorResponse(error.response?.data);
@@ -47,7 +49,7 @@ export async function POST() {
         logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            { error: "Internal Server Error" },
             { status: 500 }
         );
     }

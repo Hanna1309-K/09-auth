@@ -1,4 +1,4 @@
-import { nextServer } from "./apiInstance";
+import { api } from "./api";
 import { User } from "@/types/user";
 import { Note, CreateNoteDto } from "@/types/note";
 
@@ -7,7 +7,7 @@ export const login = async (data: {
     email: string;
     password: string;
 }): Promise<User> => {
-    const res = await nextServer.post<User>("/auth/login", data);
+    const res = await api.post("/auth/login", data);
     return res.data;
 };
 
@@ -15,12 +15,12 @@ export const register = async (data: {
     email: string;
     password: string;
 }): Promise<User> => {
-    const res = await nextServer.post("/auth/register", data);
+    const res = await api.post("/auth/register", data);
     return res.data;
 };
 
 export const logout = async (): Promise<void> => {
-    await nextServer.post("/auth/logout");
+    await api.post("/auth/logout");
 };
 
 // NOTES
@@ -28,31 +28,36 @@ export const fetchNotes = async (params?: {
     search?: string;
     tag?: string;
 }): Promise<Note[]> => {
-    const res = await nextServer.get("/notes", { params });
+    const res = await api.get("/notes", { params });
     return res.data;
 };
 
 export const fetchNoteById = async (id: string): Promise<Note> => {
-    const res = await nextServer.get(`/notes/${id}`);
+    const res = await api.get(`/notes/${id}`);
     return res.data;
 };
 
 export const createNote = async (data: CreateNoteDto): Promise<Note> => {
-    const res = await nextServer.post("/notes", data);
+    const res = await api.post("/notes", data);
     return res.data;
 };
 
 export const deleteNote = async (id: string): Promise<void> => {
-    await nextServer.delete(`/notes/${id}`);
+    await api.delete(`/notes/${id}`);
 };
 
 // USER
 export const getMe = async (): Promise<User> => {
-    const res = await nextServer.get("/users/me");
+    const res = await api.get("/users/me");
     return res.data;
 };
 
 export const updateMe = async (data: { username: string }) => {
-    const res = await nextServer.patch("/users/me", data);
+    const res = await api.patch("/users/me", data);
     return res.data;
+};
+
+export const checkSession = async (): Promise<User | null> => {
+    const res = await api.get("/auth/session");
+    return res.data?.user ?? null;
 };

@@ -2,24 +2,25 @@ import Link from "next/link";
 import css from "@/components/SidebarNotes/SidebarNotes.module.css";
 import { Tag } from "@/types/tag";
 
-const tags: Tag[] = ["Work", "Personal", "Todo", "Meeting", "Shopping"];
+const filters: (Tag | "all")[] = [
+    "all",
+    "Work",
+    "Personal",
+    "Todo",
+    "Meeting",
+    "Shopping",
+];
 
 export default function SidebarNotes() {
     return (
         <ul className={css.menuList}>
-            <li className={css.menuItem}>
-                <Link href="/notes/filter/all" className={css.menuLink}>
-                    All notes
-                </Link>
-            </li>
-
-            {tags.map((tag) => (
-                <li key={tag} className={css.menuItem}>
+            {filters.map((item) => (
+                <li key={item} className={css.menuItem}>
                     <Link
-                        href={`/notes/filter/${tag}`}
+                        href={`/notes/filter/${item}`}
                         className={css.menuLink}
                     >
-                        {tag}
+                        {item === "all" ? "All notes" : item}
                     </Link>
                 </li>
             ))}

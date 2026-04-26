@@ -17,7 +17,7 @@ export default function NotePreview({ id }: Props) {
         queryKey: ["note", id],
         queryFn: () => fetchNoteById(id),
         enabled: !!id,
-        refetchOnMount: false, // ✅ ОЦЕ ТРЕБА ДОДАТИ
+        refetchOnMount: false,
     });
 
     return (

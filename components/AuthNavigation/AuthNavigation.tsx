@@ -4,19 +4,24 @@ import Link from 'next/link';
 import css from './AuthNavigation.module.css';
 import { useAuthStore } from '@/lib/store/authStore';
 import { logout } from '@/lib/api/clientApi';
+import { useRouter } from 'next/navigation';
 
 export default function AuthNavigation() {
-    const { isAuthenticated, user, logout: logoutStore } = useAuthStore();
+    const router = useRouter();
+
+    const { isAuthenticated, user, clearIsAuthenticated } = useAuthStore();
 
     const handleLogout = async () => {
         try {
             await logout();
-            logoutStore(); // 🔥 правильний виклик
+            clearIsAuthenticated();
+            router.push('/sign-in');
         } catch (error) {
             console.error('Logout error:', error);
         }
     };
 
+    // ❗ НЕ авторизований користувач
     if (!isAuthenticated) {
         return (
             <>
@@ -35,6 +40,7 @@ export default function AuthNavigation() {
         );
     }
 
+    // ❗ Авторизований користувач
     return (
         <>
             <li className={css.navigationItem}>
@@ -45,8 +51,10 @@ export default function AuthNavigation() {
 
             <li className={css.navigationItem}>
                 <p className={css.userEmail}>{user?.email}</p>
-
-                <button onClick={handleLogout} className={css.logoutButton}>
+                <button
+                    onClick={handleLogout}
+                    className={css.logoutButton}
+                >
                     Logout
                 </button>
             </li>

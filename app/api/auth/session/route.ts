@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { api } from "../../api";
+import { api } from "@/lib/api/api";
 import { isAxiosError } from "axios";
 import { logErrorResponse } from "../../_utils/utils";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
     try {
@@ -11,15 +13,20 @@ export async function GET() {
         const accessToken = cookieStore.get("accessToken")?.value;
         const refreshToken = cookieStore.get("refreshToken")?.value;
 
-        // ❗ якщо немає токенів → одразу false
         if (!accessToken && !refreshToken) {
             return NextResponse.json({ success: false });
         }
 
-        // перевірка сесії через backend
+        const cookieHeader = [
+            accessToken && `accessToken=${accessToken}`,
+            refreshToken && `refreshToken=${refreshToken}`,
+        ]
+            .filter(Boolean)
+            .join("; ");
+
         const apiRes = await api.get("/auth/session", {
             headers: {
-                Cookie: `accessToken=${accessToken}; refreshToken=${refreshToken}`,
+                Cookie: cookieHeader,
             },
         });
 
@@ -27,7 +34,6 @@ export async function GET() {
             { success: true, user: apiRes.data?.user },
             { status: 200 }
         );
-
     } catch (error) {
         if (isAxiosError(error)) {
             logErrorResponse(error.response?.data);
