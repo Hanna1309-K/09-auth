@@ -1,24 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { api } from "@/lib/api/api";
 
-export async function GET(req: NextRequest) {
-    const url = req.nextUrl.searchParams.get("url");
+export function proxy(req: NextRequest) {
+    const token =
+        req.cookies.get("token")?.value ||
+        req.cookies.get("access_token")?.value ||
+        req.cookies.get("accessToken")?.value ||
+        req.cookies.get("refreshToken")?.value;
 
-    if (!url) {
-        return NextResponse.json(
-            { error: "Missing url" },
-            { status: 400 }
-        );
+    const { pathname } = req.nextUrl;
+
+    const isAuthPage =
+        pathname.startsWith("/sign-in") ||
+        pathname.startsWith("/sign-up");
+
+    const isPrivatePage =
+        pathname.startsWith("/profile") ||
+        pathname.startsWith("/notes");
+
+    // 🔒 якщо НЕ авторизований і йде в приватні сторінки
+    if (!token && isPrivatePage) {
+        return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
-    try {
-        const res = await api.get(url);
-
-        return NextResponse.json(res.data, { status: res.status });
-    } catch {
-        return NextResponse.json(
-            { error: "Proxy error" },
-            { status: 500 }
-        );
+    // 🔓 якщо авторизований і йде на auth сторінки
+    if (token && isAuthPage) {
+        return NextResponse.redirect(new URL("/profile", req.url));
     }
+
+    return NextResponse.next();
 }
