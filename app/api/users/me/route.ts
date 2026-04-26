@@ -31,7 +31,48 @@ export async function GET() {
                     response: error.response?.data,
                 },
                 {
-                    status: error.response?.status,
+                    status: error.status,
+                }
+            );
+        }
+
+        logErrorResponse({ message: (error as Error).message });
+
+        return NextResponse.json(
+            { error: "Internal Server Error" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function PATCH(request: Request) {
+    try {
+        const body = await request.json();
+
+        const cookieStore = cookies();
+
+        const cookieHeader = cookieStore.toString();
+
+        const res = await api.patch("/users/me", body, {
+            headers: {
+                Cookie: cookieHeader,
+            },
+        });
+
+        return NextResponse.json(res.data, {
+            status: res.status,
+        });
+    } catch (error) {
+        if (isAxiosError(error)) {
+            logErrorResponse(error.response?.data);
+
+            return NextResponse.json(
+                {
+                    error: error.message,
+                    response: error.response?.data,
+                },
+                {
+                    status: error.status,
                 }
             );
         }

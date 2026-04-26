@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { api } from "@/lib/api/api";
+import { cookies } from "next/headers";
 import { isAxiosError } from "axios";
 import { logErrorResponse } from "../../_utils/utils";
 
@@ -9,9 +10,7 @@ export async function POST(req: NextRequest) {
 
         const apiRes = await api.post("/auth/register", body);
 
-        const response = NextResponse.json(apiRes.data, {
-            status: apiRes.status,
-        });
+        const cookieStore = await cookies();
 
         const setCookie = apiRes.headers["set-cookie"];
 
@@ -20,12 +19,18 @@ export async function POST(req: NextRequest) {
                 ? setCookie
                 : [setCookie];
 
-            cookiesArray.forEach((cookie) => {
-                response.headers.append("set-cookie", cookie);
+            cookiesArray.forEach((cookieStr) => {
+                const [cookiePair] = cookieStr.split(";");
+
+                const [name, value] = cookiePair.split("=");
+
+                cookieStore.set(name, value);
             });
         }
 
-        return response;
+        return NextResponse.json(apiRes.data, {
+            status: apiRes.status,
+        });
     } catch (error) {
         if (isAxiosError(error)) {
             logErrorResponse(error.response?.data);

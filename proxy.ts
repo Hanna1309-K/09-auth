@@ -16,29 +16,36 @@ export async function proxy(req: NextRequest) {
         pathname.startsWith("/notes");
 
     let token = accessToken;
+    let response = NextResponse.next();
 
-    // 🔄 якщо немає accessToken → пробуємо refresh
     if (!accessToken && refreshToken) {
         try {
-            const session = await checkSession();
+            const sessionResponse = await checkSession();
 
-            if (session) {
-                token = accessToken || refreshToken;
+            // якщо є set-cookie — беремо його через типізацію Response
+            const headers = (sessionResponse as unknown as Response).headers;
+            const setCookie = headers.get("set-cookie");
+
+            if (setCookie) {
+                response = NextResponse.next();
+                response.headers.set("set-cookie", setCookie);
+            }
+
+            if (sessionResponse) {
+                token = refreshToken;
             }
         } catch {
             token = undefined;
         }
     }
 
-    // 🔒 неавторизований → приватні сторінки
     if (!token && isPrivatePage) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
-    // 🔓 авторизований → auth сторінки
     if (token && isAuthPage) {
         return NextResponse.redirect(new URL("/", req.url));
     }
 
-    return NextResponse.next();
+    return response;
 }

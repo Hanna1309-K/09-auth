@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
         const res = await api.get("/notes", {
             params: {
-                ...(search && { search }),
+                ...(search !== "" && { search }),
                 page,
                 perPage: 12,
                 ...(tag && { tag }),
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
             return NextResponse.json(
                 { error: error.message, response: error.response?.data },
-                { status: error.response?.status || 500 }
+                { status: error.status }
             );
         }
 
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 
             return NextResponse.json(
                 { error: error.message, response: error.response?.data },
-                { status: error.response?.status || 500 }
+                { status: error.status }
             );
         }
 

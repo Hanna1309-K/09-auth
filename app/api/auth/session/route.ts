@@ -10,9 +10,14 @@ export async function GET() {
     try {
         const cookieStore = await cookies();
 
+        const cookieHeader = cookieStore
+            .getAll()
+            .map((c) => `${c.name}=${c.value}`)
+            .join("; ");
+
         const apiRes = await api.get("/auth/session", {
             headers: {
-                Cookie: cookieStore.toString(),
+                Cookie: cookieHeader,
             },
         });
 
