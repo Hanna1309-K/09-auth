@@ -33,13 +33,8 @@ export async function GET(request: NextRequest) {
                 { status: error.status }
             );
         }
-
         logErrorResponse({ message: (error as Error).message });
-
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
@@ -66,12 +61,7 @@ export async function POST(request: NextRequest) {
                 { status: error.status }
             );
         }
-
         logErrorResponse({ message: (error as Error).message });
-
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
