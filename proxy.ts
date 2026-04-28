@@ -16,6 +16,7 @@ export async function proxy(req: NextRequest) {
         pathname.startsWith("/notes");
 
     let token = accessToken;
+    const response = NextResponse.next();
 
     if (!accessToken && refreshToken) {
         try {
@@ -29,9 +30,7 @@ export async function proxy(req: NextRequest) {
             token = newAccessToken || refreshToken;
 
             if (setCookie) {
-                const response = NextResponse.next();
-                response.headers.set("set-cookie", setCookie);
-                return response;
+                response.headers.append("set-cookie", setCookie);
             }
         } catch {
             token = undefined;
@@ -42,9 +41,10 @@ export async function proxy(req: NextRequest) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
+
     if (token && isAuthPage) {
         return NextResponse.redirect(new URL("/", req.url));
     }
 
-    return NextResponse.next();
+    return response;
 }
