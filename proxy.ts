@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkSession } from "@/lib/api/serverApi";
+import { cookies } from "next/headers";
 
 export async function proxy(req: NextRequest) {
-    const accessToken = req.cookies.get("accessToken")?.value;
-    const refreshToken = req.cookies.get("refreshToken")?.value;
-
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("accessToken")?.value;
+    const refreshToken = cookieStore.get("refreshToken")?.value;
     const { pathname } = req.nextUrl;
 
     const isAuthPage =
@@ -16,35 +17,43 @@ export async function proxy(req: NextRequest) {
         pathname.startsWith("/notes");
 
     let token = accessToken;
-    const response = NextResponse.next();
+
 
     if (!accessToken && refreshToken) {
         try {
             const sessionResponse = await checkSession();
 
-            const headers = sessionResponse as unknown as Response;
-            const setCookie = headers.headers.get("set-cookie");
+            const newAccessToken =
+                (sessionResponse as { accessToken?: string })?.accessToken;
 
-            const newAccessToken = (sessionResponse as unknown as { accessToken?: string })?.accessToken;
+            if (newAccessToken) {
+                token = newAccessToken;
 
-            token = newAccessToken || refreshToken;
-
-            if (setCookie) {
-                response.headers.append("set-cookie", setCookie);
+                const redirect = NextResponse.redirect(req.url);
+                redirect.cookies.set("accessToken", newAccessToken, {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "lax",
+                    path: "/",
+                });
+                return redirect;
             }
-        } catch {
             token = undefined;
+        }
+        catch {
+            // ignore
         }
     }
 
+    // 🔒 private
     if (!token && isPrivatePage) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
-
+    // 🚫 auth для залогінених
     if (token && isAuthPage) {
         return NextResponse.redirect(new URL("/", req.url));
     }
 
-    return response;
+    return NextResponse.next();
 }

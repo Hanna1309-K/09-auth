@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { api } from "@/lib/api/api";
+import { api } from "../../api";
 import { cookies } from "next/headers";
 import { parse } from "cookie";
 import { isAxiosError } from "axios";
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         const apiRes = await api.post('auth/register', body);
 
         const cookieStore = await cookies();
-        const setCookie = apiRes.headers["set-cookie"];
+        const setCookie = apiRes.headers['set-cookie'];
 
         if (setCookie) {
             const cookieArray = Array.isArray(setCookie)
@@ -23,21 +23,17 @@ export async function POST(req: NextRequest) {
                 const parsed = parse(cookieStr);
 
                 const options = {
-                    expires: parsed.Expires
-                        ? new Date(parsed.Expires)
-                        : undefined,
+                    expires: parsed.Expires ? new Date(parsed.Expires) : undefined,
                     path: parsed.Path,
-                    maxAge: parsed["Max-Age"]
-                        ? Number(parsed["Max-Age"])
-                        : undefined,
+                    maxAge: Number(parsed['Max-Age']),
                 };
 
                 if (parsed.accessToken) {
-                    cookieStore.set("accessToken", parsed.accessToken, options);
+                    cookieStore.set('accessToken', parsed.accessToken, options);
                 }
 
                 if (parsed.refreshToken) {
-                    cookieStore.set("refreshToken", parsed.refreshToken, options);
+                    cookieStore.set('refreshToken', parsed.refreshToken, options);
                 }
             }
             return NextResponse.json(apiRes.data, {
@@ -46,7 +42,7 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json(
-            { error: "Unauthorized" },
+            { error: 'Unauthorized' },
             { status: 401 }
         );
     } catch (error) {
@@ -59,7 +55,7 @@ export async function POST(req: NextRequest) {
                     response: error.response?.data,
                 },
                 {
-                    status: error.response?.status || 500,
+                    status: error.status,
                 }
             );
         }
@@ -67,7 +63,7 @@ export async function POST(req: NextRequest) {
         logErrorResponse({ message: (error as Error).message });
 
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { error: 'Internal Server Error' },
             { status: 500 }
         );
     }
